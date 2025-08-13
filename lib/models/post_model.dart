@@ -1,49 +1,43 @@
-import 'dart:convert';
-
-PostModel postModelFromJson(String str) => PostModel.fromJson(json.decode(str));
-
-String postModelToJson(PostModel data) => json.encode(data.toJson());
-
 class PostModel {
-  List<DataPost>? data;
-  String? message;
   bool? success;
+  String? message;
+  List<PostData>? data;
 
-  PostModel({
-    this.data,
-    this.message,
-    this.success,
-  });
+  PostModel({this.success, this.message, this.data});
 
-  factory PostModel.fromJson(Map<String, dynamic> json) => PostModel(
-        data: json["data"] == null
-            ? []
-            : List<DataPost>.from(
-                json["data"]!.map((x) => DataPost.fromJson(x))),
-        message: json["message"],
-        success: json["success"],
-      );
+  PostModel.fromJson(Map<String, dynamic> json) {
+    success = json['success'];
+    message = json['message'];
+    if (json['data'] != null) {
+      data = <PostData>[];
+      json['data'].forEach((v) {
+        data!.add(PostData.fromJson(v));
+      });
+    }
+  }
 
-  Map<String, dynamic> toJson() => {
-        "data": data == null
-            ? []
-            : List<dynamic>.from(data!.map((x) => x.toJson())),
-        "message": message,
-        "success": success,
-      };
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['message'] = message;
+    if (this.data != null) {
+      data['data'] = this.data!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
 }
 
-class DataPost {
+class PostData {
   int? id;
   String? title;
   String? content;
   String? slug;
   int? status;
   String? image;
-  DateTime? createdAt;
-  DateTime? updatedAt;
+  String? createdAt;
+  String? updatedAt;
 
-  DataPost({
+  PostData({
     this.id,
     this.title,
     this.content,
@@ -54,29 +48,27 @@ class DataPost {
     this.updatedAt,
   });
 
-  factory DataPost.fromJson(Map<String, dynamic> json) => DataPost(
-        id: json["id"],
-        title: json["title"],
-        content: json["content"],
-        slug: json["slug"],
-        status: json["status"],
-        image: json["image"],
-        createdAt: json["created_at"] == null
-            ? null
-            : DateTime.parse(json["created_at"]),
-        updatedAt: json["updated_at"] == null
-            ? null
-            : DateTime.parse(json["updated_at"]),
-      );
+  PostData.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    title = json['title'];
+    content = json['content'];
+    slug = json['slug'];
+    status = json['status'];
+    image = json['image'];
+    createdAt = json['created_at'];
+    updatedAt = json['updated_at'];
+  }
 
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "title": title,
-        "content": content,
-        "slug": slug,
-        "status": status,
-        "image": image,
-        "created_at": createdAt?.toIso8601String(),
-        "updated_at": updatedAt?.toIso8601String(),
-      };
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['title'] = title;
+    data['content'] = content;
+    data['slug'] = slug;
+    data['status'] = status;
+    data['image'] = image;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
+    return data;
+  }
 }

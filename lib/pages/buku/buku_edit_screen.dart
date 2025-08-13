@@ -1,31 +1,37 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:perpustakaan/models/buku_model.dart';
 import 'package:perpustakaan/services/buku_service.dart';
 import 'package:perpustakaan/services/kategori_service.dart';
 import 'package:perpustakaan/models/kategori_model.dart';
 
-class BukuCreateScreen extends StatefulWidget {
-  const BukuCreateScreen({super.key});
+class BukuEditScreen extends StatefulWidget {
+  final Buku buku;
+
+  const BukuEditScreen({
+    super.key,
+    required this.buku,
+  });
 
   @override
-  State<BukuCreateScreen> createState() => _BukuCreateScreenState();
+  State<BukuEditScreen> createState() => _BukuEditScreenState();
 }
 
-class _BukuCreateScreenState extends State<BukuCreateScreen> {
+class _BukuEditScreenState extends State<BukuEditScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _judulController = TextEditingController();
-  final _penulisController = TextEditingController();
-  final _penerbitController = TextEditingController();
-  final _tahunController = TextEditingController(
-    text: DateTime.now().year.toString(),
-  );
-  final _stokController = TextEditingController();
+  late final TextEditingController _judulController;
+  late final TextEditingController _penulisController;
+  late final TextEditingController _penerbitController;
+  late final TextEditingController _tahunController;
+  late final TextEditingController _stokController;
+
   Uint8List? _coverBytes;
   String? _coverName;
   bool _isLoading = false;
   bool _isLoadingKategori = true;
+  bool _coverChanged = false;
 
   List<Datum> _kategoris = [];
   int? _selectedKategoriId;
@@ -33,7 +39,22 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeControllers();
     _loadKategoris();
+  }
+
+  void _initializeControllers() {
+    _judulController = TextEditingController(text: widget.buku.judul);
+    _penulisController = TextEditingController(text: widget.buku.penulis);
+    _penerbitController = TextEditingController(text: widget.buku.penerbit);
+    _tahunController = TextEditingController(
+      text: widget.buku.tahunTerbit.toString(),
+    );
+    _stokController = TextEditingController(
+      text: widget.buku.stok.toString(),
+    );
+    // Get kategori ID from the kategori object
+    _selectedKategoriId = widget.buku.kategori?.id;
   }
 
   @override
@@ -54,8 +75,6 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
         setState(() {
           _kategoris = data;
           _isLoadingKategori = false;
-          _selectedKategoriId =
-              null; // ❌ Jangan langsung pilih kategori pertama
         });
       }
     } catch (e) {
@@ -74,35 +93,6 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
               onPressed: _loadKategoris,
               textColor: Colors.white,
             ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _pickImage() async {
-    try {
-      final picked = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
-      if (picked != null) {
-        final bytes = await picked.readAsBytes();
-        if (mounted) {
-          setState(() {
-            _coverBytes = bytes;
-            _coverName = picked.name;
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Gagal mengambil gambar: $e"),
-            backgroundColor: Colors.red,
           ),
         );
       }
@@ -147,6 +137,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
           setState(() {
             _coverBytes = bytes;
             _coverName = picked.name;
+            _coverChanged = true;
           });
         }
       }
@@ -163,21 +154,11 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
   }
 
   Future<void> _submit() async {
-    // Validasi form dan cover
+    // Validasi form
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Mohon lengkapi semua field yang wajib diisi"),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    if (_coverBytes == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Mohon pilih cover buku terlebih dahulu"),
           backgroundColor: Colors.orange,
         ),
       );
@@ -197,15 +178,17 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final success = await BukuService.createBuku(
+      final success = await BukuService.updateBuku(
+        id: widget.buku.id,
         judul: _judulController.text.trim(),
         penulis: _penulisController.text.trim(),
         penerbit: _penerbitController.text.trim(),
         tahunTerbit: int.tryParse(_tahunController.text) ?? DateTime.now().year,
         stok: int.tryParse(_stokController.text) ?? 0,
         kategoriId: _selectedKategoriId!,
-        coverBytes: _coverBytes!,
-        coverName: _coverName ?? 'cover.jpg',
+        // Perbaiki sintaks di sini - hapus * dan gunakan kondisional yang benar
+        coverBytes: _coverChanged ? _coverBytes : null,
+        coverName: _coverChanged ? (_coverName ?? 'cover.jpg') : null,
       );
 
       setState(() => _isLoading = false);
@@ -214,7 +197,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Buku berhasil ditambahkan"),
+              content: Text("Buku berhasil diperbarui"),
               backgroundColor: Colors.green,
             ),
           );
@@ -222,7 +205,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Gagal menambahkan buku. Silakan coba lagi."),
+              content: Text("Gagal memperbarui buku. Silakan coba lagi."),
               backgroundColor: Colors.red,
             ),
           );
@@ -236,7 +219,6 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
           Navigator.of(context).pushReplacementNamed('/login');
           return;
         }
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Terjadi kesalahan: $e"),
@@ -252,7 +234,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Cover Buku *",
+          "Cover Buku",
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 10),
@@ -262,10 +244,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
             height: 200,
             width: double.infinity,
             decoration: BoxDecoration(
-              border: Border.all(
-                color: _coverBytes == null ? Colors.red.shade300 : Colors.grey,
-                width: _coverBytes == null ? 2 : 1,
-              ),
+              border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(12),
               color: Colors.grey[50],
             ),
@@ -296,6 +275,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                               setState(() {
                                 _coverBytes = null;
                                 _coverName = null;
+                                _coverChanged = true;
                               });
                             },
                           ),
@@ -303,40 +283,82 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                       ),
                     ],
                   )
-                : const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text(
-                          "Pilih Cover Buku",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
+                : widget.buku.cover != null && widget.buku.cover!.isNotEmpty
+                    ? Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              'http://127.0.0.1:8000/storage/${widget.buku.cover}',
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildPlaceholder();
+                              },
+                            ),
                           ),
-                        ),
-                        Text(
-                          "Tap untuk memilih dari galeri atau kamera",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.edit,
+                                    color: Colors.white, size: 20),
+                                onPressed: _showImageSourceDialog,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        ],
+                      )
+                    : _buildPlaceholder(),
           ),
         ),
-        if (_coverBytes == null)
-          const Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: Text(
-              "Cover buku wajib dipilih",
-              style: TextStyle(color: Colors.red, fontSize: 12),
+        const Padding(
+          padding: EdgeInsets.only(top: 5),
+          child: Text(
+            "Tap untuk mengubah cover buku",
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
+          SizedBox(height: 8),
+          Text(
+            "Pilih Cover Buku",
+            style: TextStyle(
+              color: Colors.grey,
+              fontWeight: FontWeight.w500,
             ),
           ),
-      ],
+          Text(
+            "Tap untuk memilih dari galeri",
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -344,8 +366,8 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tambah Buku"),
-        backgroundColor: Colors.blueAccent,
+        title: const Text("Edit Buku"),
+        backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
         elevation: 2,
       ),
@@ -365,14 +387,14 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.book, color: Colors.blueAccent),
+                      Icon(Icons.edit, color: Colors.orange),
                       const SizedBox(width: 8),
                       const Text(
-                        "Informasi Buku",
+                        "Edit Informasi Buku",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
+                          color: Colors.orange,
                         ),
                       ),
                     ],
@@ -429,9 +451,8 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                             ),
                             ..._kategoris.map((kategori) {
                               return DropdownMenuItem<int>(
-                                value: kategori.id!,
-                                child: Text(kategori.namaKategori ??
-                                    'Nama tidak tersedia'),
+                                value: kategori.id,
+                                child: Text(kategori.namaKategori.toString()),
                               );
                             }).toList(),
                           ],
@@ -557,9 +578,9 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                           )
                         : ElevatedButton.icon(
                             onPressed: _submit,
-                            icon: const Icon(Icons.save, color: Colors.white),
+                            icon: const Icon(Icons.update, color: Colors.white),
                             label: const Text(
-                              "Simpan Buku",
+                              "Perbarui Buku",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -567,7 +588,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueAccent,
+                              backgroundColor: Colors.orange,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),

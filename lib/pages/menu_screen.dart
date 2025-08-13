@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:perpustakaan/pages/buku/buku_list_screen.dart';
 import 'package:perpustakaan/pages/home_screen.dart';
+import 'package:perpustakaan/pages/kategori/list_kategori_screen.dart';
 import 'package:perpustakaan/pages/profile_screen.dart';
 import 'package:perpustakaan/pages/post/list_post_screen.dart';
 
@@ -17,8 +18,9 @@ class _MenuScreenState extends State<MenuScreen> {
   final List<Widget> _pages = [
     HomeScreen(),
     BukuListScreen(),
-    ProfileScreen(),
-    ListPostScreen()
+    ListKategori(),
+    ListPostScreen(),
+    ProfileScreen()
   ];
 
   @override
@@ -36,7 +38,10 @@ class _MenuScreenState extends State<MenuScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Buku'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Post'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.category), label: 'Kategori'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.post_add_outlined), label: 'Post'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),

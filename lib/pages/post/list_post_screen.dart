@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:perpustakaan/models/post_model.dart';
+import 'package:perpustakaan/pages/post/create_post_screen.dart';
+import 'package:perpustakaan/pages/post/detail_post_screen.dart';
 import 'package:perpustakaan/services/post_service.dart';
 
 class ListPostScreen extends StatefulWidget {
@@ -47,19 +49,17 @@ class _ListPostScreenState extends State<ListPostScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Posts'),
-        actions: [
-          IconButton(onPressed: _refreshPosts, icon: const Icon(Icons.refresh)),
-          // IconButton(
-          //   onPressed: () async {
-          //     final result = await Navigator.push(
-          //       context,
-          //       MaterialPageRoute(builder: (_) => const CreatePostScreen()),
-          //     );
-          //     if (result == true) _refreshPosts();
-          //   },
-          //   icon: const Icon(Icons.add),
-          // ),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blueAccent,
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+          );
+          _refreshPosts();
+        },
+        child: const Icon(Icons.add),
       ),
       body: FutureBuilder<PostModel>(
         future: _futurePosts,
@@ -79,27 +79,35 @@ class _ListPostScreenState extends State<ListPostScreen> {
           return ListView.builder(
             itemCount: posts.length,
             itemBuilder: (context, index) {
-              final post = posts[index];
+              final PostData post = posts[index];
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: ListTile(
-                  // onTap: () async {
-                  //   final result = await Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //       builder: (_) => PostDetailScreen(post: post),
-                  //     ),
-                  //   );
-                  //   if (result == true) _refreshPosts();
-                  // },
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PostDetailScreen(
+                          postId: post.id ?? 0,
+                          postTitle: post.title ?? 'No Title',
+                        ),
+                      ),
+                    );
+                    if (result == true) {
+                      _refreshPosts();
+                    }
+                  },
                   leading: post.image != null && post.image!.isNotEmpty
-                      ? Image.network(
-                          'http://127.0.0.1:8000/storage/${post.image!}',
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                              const Icon(Icons.broken_image),
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: Image.network(
+                            'http://127.0.0.1:8000/storage/${post.image!}',
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.broken_image),
+                          ),
                         )
                       : const Icon(Icons.article),
                   title: Text(post.title ?? 'No Title'),
@@ -112,6 +120,7 @@ class _ListPostScreenState extends State<ListPostScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
+                      const SizedBox(height: 4),
                       Text(
                         '${_formatDate(post.createdAt)} • ${post.status == 1 ? "Published" : "Draft"}',
                         style: TextStyle(
@@ -122,7 +131,7 @@ class _ListPostScreenState extends State<ListPostScreen> {
                       ),
                     ],
                   ),
-                  trailing: Text('#${post.id}'),
+                  trailing: Text('#${post.id ?? 0}'),
                 ),
               );
             },
