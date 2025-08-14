@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:perpustakaan/models/buku_model.dart';
 import 'package:perpustakaan/pages/buku/buku_edit_screen.dart';
+import 'package:perpustakaan/pages/peminjaman/peminjaman_create_screen.dart';
 import 'package:perpustakaan/services/buku_service.dart';
 
 class DetailBukuScreen extends StatefulWidget {
@@ -43,6 +44,31 @@ class _DetailBukuScreenState extends State<DetailBukuScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Buku berhasil diperbarui"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  // Method to navigate to peminjaman create screen
+  void _navigateToPinjamBuku(Buku buku) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PeminjamanCreateScreen(
+          selectedBuku: buku, // Pass the selected book to pre-fill the form
+        ),
+      ),
+    );
+
+    // If peminjaman was successful, refresh the book data to update stock
+    if (result == true) {
+      _refreshBuku();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Peminjaman berhasil dibuat"),
             backgroundColor: Colors.green,
           ),
         );
@@ -189,37 +215,21 @@ class _DetailBukuScreenState extends State<DetailBukuScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton(
+                      child: ElevatedButton.icon(
                         onPressed: (buku.stok ?? 0) > 0
-                            ? () {
-                                // Navigator.pushNamed(context, '/pinjam-buku', arguments: buku.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text("Pinjam buku - Coming Soon!")),
-                                );
-                              }
+                            ? () => _navigateToPinjamBuku(buku)
                             : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: Text((buku.stok ?? 0) > 0
+                        icon: const Icon(Icons.book_online),
+                        label: Text((buku.stok ?? 0) > 0
                             ? "Pinjam Buku"
                             : "Stok Habis"),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          // Navigator.pushNamed(context, '/favorites', arguments: buku.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("Tambah favorit - Coming Soon!")),
-                          );
-                        },
-                        child: const Text("Favorit"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: (buku.stok ?? 0) > 0
+                              ? Colors.blueAccent
+                              : Colors.grey,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
                       ),
                     ),
                   ],
@@ -237,6 +247,7 @@ class _DetailBukuScreenState extends State<DetailBukuScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.orange,
                       side: const BorderSide(color: Colors.orange),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
