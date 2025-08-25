@@ -30,6 +30,14 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
   List<Datum> _kategoris = [];
   int? _selectedKategoriId;
 
+  // Color palette
+  static const primaryGreen = Color(0xFF2E7D32);
+  static const leafGreen = Color(0xFF66BB6A);
+  static const creamWhite = Color(0xFFF9F9F6);
+  static const warmGray = Color(0xFF9E9E9E);
+  static const charcoalBlack = Color(0xFF212121);
+  static const amber = Color(0xFFFFC107);
+
   @override
   void initState() {
     super.initState();
@@ -54,8 +62,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
         setState(() {
           _kategoris = data;
           _isLoadingKategori = false;
-          _selectedKategoriId =
-              null; // ❌ Jangan langsung pilih kategori pertama
+          _selectedKategoriId = null;
         });
       }
     } catch (e) {
@@ -119,7 +126,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.photo_library),
+                leading: Icon(Icons.photo_library, color: primaryGreen),
                 title: const Text('Galeri'),
                 onTap: () {
                   Navigator.pop(context);
@@ -166,9 +173,9 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
     // Validasi form dan cover
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Mohon lengkapi semua field yang wajib diisi"),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text("Mohon lengkapi semua field yang wajib diisi"),
+          backgroundColor: amber,
         ),
       );
       return;
@@ -176,9 +183,9 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
 
     if (_coverBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Mohon pilih cover buku terlebih dahulu"),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text("Mohon pilih cover buku terlebih dahulu"),
+          backgroundColor: amber,
         ),
       );
       return;
@@ -186,9 +193,9 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
 
     if (_selectedKategoriId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Mohon pilih kategori buku"),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text("Mohon pilih kategori buku"),
+          backgroundColor: amber,
         ),
       );
       return;
@@ -215,7 +222,7 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Buku berhasil ditambahkan"),
-              backgroundColor: Colors.green,
+              backgroundColor: primaryGreen,
             ),
           );
           Navigator.pop(context, true);
@@ -231,7 +238,6 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        // Handle authentication errors
         if (e.toString().contains('Token tidak valid')) {
           Navigator.of(context).pushReplacementNamed('/login');
           return;
@@ -253,9 +259,13 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
       children: [
         const Text(
           "Cover Buku *",
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: charcoalBlack,
+          ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         GestureDetector(
           onTap: _showImageSourceDialog,
           child: Container(
@@ -263,17 +273,19 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
             width: double.infinity,
             decoration: BoxDecoration(
               border: Border.all(
-                color: _coverBytes == null ? Colors.red.shade300 : Colors.grey,
+                color: _coverBytes == null
+                    ? Colors.red.shade300
+                    : warmGray.withOpacity(0.3),
                 width: _coverBytes == null ? 2 : 1,
               ),
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(16),
+              color: _coverBytes == null ? creamWhite : Colors.white,
             ),
             child: _coverBytes != null
                 ? Stack(
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                         child: Image.memory(
                           _coverBytes!,
                           fit: BoxFit.cover,
@@ -282,12 +294,12 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                         ),
                       ),
                       Positioned(
-                        top: 8,
-                        right: 8,
+                        top: 12,
+                        right: 12,
                         child: Container(
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: Colors.black54,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: IconButton(
                             icon: const Icon(Icons.close,
@@ -303,24 +315,26 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                       ),
                     ],
                   )
-                : const Center(
+                : Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text(
+                        Icon(Icons.add_a_photo, size: 50, color: leafGreen),
+                        const SizedBox(height: 12),
+                        const Text(
                           "Pilih Cover Buku",
                           style: TextStyle(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
+                            color: charcoalBlack,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
                           ),
                         ),
-                        Text(
-                          "Tap untuk memilih dari galeri atau kamera",
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Tap untuk memilih dari galeri",
                           style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
+                            color: warmGray,
+                            fontSize: 14,
                           ),
                         ),
                       ],
@@ -330,10 +344,10 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
         ),
         if (_coverBytes == null)
           const Padding(
-            padding: EdgeInsets.only(top: 5),
+            padding: EdgeInsets.only(top: 8),
             child: Text(
               "Cover buku wajib dipilih",
-              style: TextStyle(color: Colors.red, fontSize: 12),
+              style: TextStyle(color: Colors.red, fontSize: 13),
             ),
           ),
       ],
@@ -343,21 +357,36 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: creamWhite,
       appBar: AppBar(
-        title: const Text("Tambah Buku"),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
+        title: const Text(
+          "Tambah Buku",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: primaryGreen,
         elevation: 2,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
               child: Column(
@@ -365,29 +394,47 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.book, color: Colors.blueAccent),
-                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: leafGreen.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(Icons.auto_stories,
+                            color: primaryGreen, size: 24),
+                      ),
+                      const SizedBox(width: 12),
                       const Text(
                         "Informasi Buku",
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
+                          color: charcoalBlack,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
                   // Field Judul
                   TextFormField(
                     controller: _judulController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: "Judul Buku *",
-                      prefixIcon: Icon(Icons.title),
-                      border: OutlineInputBorder(),
+                      labelStyle: const TextStyle(color: warmGray),
+                      prefixIcon: Icon(Icons.title, color: leafGreen),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: warmGray.withOpacity(0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: primaryGreen, width: 2),
+                      ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: creamWhite,
                     ),
                     textCapitalization: TextCapitalization.words,
                     validator: (value) {
@@ -400,38 +447,52 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Dropdown Kategori
                   _isLoadingKategori
-                      ? const Center(
+                      ? Center(
                           child: Padding(
-                            padding: EdgeInsets.all(20),
-                            child: CircularProgressIndicator(),
+                            padding: const EdgeInsets.all(20),
+                            child:
+                                CircularProgressIndicator(color: primaryGreen),
                           ),
                         )
                       : DropdownButtonFormField<int>(
                           value: _selectedKategoriId,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: "Kategori *",
-                            prefixIcon: Icon(Icons.category),
-                            border: OutlineInputBorder(),
+                            labelStyle: const TextStyle(color: warmGray),
+                            prefixIcon: Icon(Icons.category, color: leafGreen),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide:
+                                  BorderSide(color: warmGray.withOpacity(0.3)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                  color: primaryGreen, width: 2),
+                            ),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: creamWhite,
                           ),
                           items: [
                             const DropdownMenuItem<int>(
                               value: null,
                               child: Text(
                                 "Pilih kategori",
-                                style: TextStyle(color: Colors.grey),
+                                style: TextStyle(color: warmGray),
                               ),
                             ),
                             ..._kategoris.map((kategori) {
                               return DropdownMenuItem<int>(
                                 value: kategori.id!,
-                                child: Text(kategori.namaKategori ??
-                                    'Nama tidak tersedia'),
+                                child: Text(
+                                  kategori.namaKategori ??
+                                      'Nama tidak tersedia',
+                                  style: const TextStyle(color: charcoalBlack),
+                                ),
                               );
                             }).toList(),
                           ],
@@ -444,17 +505,27 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                               value == null ? "Kategori wajib dipilih" : null,
                         ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Field Penulis
                   TextFormField(
                     controller: _penulisController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: "Penulis *",
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
+                      labelStyle: const TextStyle(color: warmGray),
+                      prefixIcon: Icon(Icons.person, color: leafGreen),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: warmGray.withOpacity(0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: primaryGreen, width: 2),
+                      ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: creamWhite,
                     ),
                     textCapitalization: TextCapitalization.words,
                     validator: (value) {
@@ -464,17 +535,27 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Field Penerbit
                   TextFormField(
                     controller: _penerbitController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: "Penerbit *",
-                      prefixIcon: Icon(Icons.business),
-                      border: OutlineInputBorder(),
+                      labelStyle: const TextStyle(color: warmGray),
+                      prefixIcon: Icon(Icons.business, color: leafGreen),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: warmGray.withOpacity(0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: primaryGreen, width: 2),
+                      ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: creamWhite,
                     ),
                     textCapitalization: TextCapitalization.words,
                     validator: (value) {
@@ -484,76 +565,108 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  // Field Tahun Terbit
-                  TextFormField(
-                    controller: _tahunController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: "Tahun Terbit *",
-                      prefixIcon: Icon(Icons.calendar_today),
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: "Contoh: 2023",
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Tahun terbit wajib diisi';
-                      }
-                      final tahun = int.tryParse(value.trim());
-                      if (tahun == null) {
-                        return 'Tahun harus berupa angka';
-                      }
-                      if (tahun < 1900 || tahun > DateTime.now().year + 1) {
-                        return 'Tahun tidak valid (1900-${DateTime.now().year + 1})';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Field Stok
-                  TextFormField(
-                    controller: _stokController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: "Stok *",
-                      prefixIcon: Icon(Icons.inventory),
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: "Jumlah buku yang tersedia",
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Jumlah stok wajib diisi';
-                      }
-                      final stok = int.tryParse(value.trim());
-                      if (stok == null) {
-                        return 'Stok harus berupa angka';
-                      }
-                      if (stok < 0) {
-                        return 'Stok tidak boleh negatif';
-                      }
-                      return null;
-                    },
+                  // Row untuk Tahun dan Stok
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _tahunController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: "Tahun Terbit *",
+                            labelStyle: const TextStyle(color: warmGray),
+                            prefixIcon:
+                                Icon(Icons.calendar_today, color: leafGreen),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide:
+                                  BorderSide(color: warmGray.withOpacity(0.3)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                  color: primaryGreen, width: 2),
+                            ),
+                            filled: true,
+                            fillColor: creamWhite,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Tahun wajib diisi';
+                            }
+                            final tahun = int.tryParse(value.trim());
+                            if (tahun == null) {
+                              return 'Tahun harus angka';
+                            }
+                            if (tahun < 1900 ||
+                                tahun > DateTime.now().year + 1) {
+                              return 'Tahun tidak valid';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _stokController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: "Stok *",
+                            labelStyle: const TextStyle(color: warmGray),
+                            prefixIcon: Icon(Icons.inventory, color: leafGreen),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide:
+                                  BorderSide(color: warmGray.withOpacity(0.3)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                  color: primaryGreen, width: 2),
+                            ),
+                            filled: true,
+                            fillColor: creamWhite,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Stok wajib diisi';
+                            }
+                            final stok = int.tryParse(value.trim());
+                            if (stok == null) {
+                              return 'Stok harus angka';
+                            }
+                            if (stok < 0) {
+                              return 'Stok tidak boleh negatif';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
 
                   // Section Cover
                   _buildCoverSection(),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 32),
 
                   // Submit Button
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 54,
                     child: _isLoading
-                        ? const Center(
-                            child:
-                                CircularProgressIndicator(color: Colors.white),
+                        ? Container(
+                            decoration: BoxDecoration(
+                              color: primaryGreen.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.white),
+                            ),
                           )
                         : ElevatedButton.icon(
                             onPressed: _submit,
@@ -567,11 +680,11 @@ class _BukuCreateScreenState extends State<BukuCreateScreen> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueAccent,
+                              backgroundColor: primaryGreen,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              elevation: 2,
+                              elevation: 3,
                             ),
                           ),
                   ),

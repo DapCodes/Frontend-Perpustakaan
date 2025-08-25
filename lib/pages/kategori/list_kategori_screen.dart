@@ -14,6 +14,13 @@ class ListKategori extends StatefulWidget {
 class _ListKategoriState extends State<ListKategori> {
   late Future<Kategori> _futureKategori;
 
+  // Color palette matching BukuListScreen
+  static const primaryGreen = Color(0xFF2E7D32);
+  static const leafGreen = Color(0xFF66BB6A);
+  static const creamWhite = Color(0xFFF9F9F6);
+  static const warmGray = Color(0xFF9E9E9E);
+  static const charcoalBlack = Color(0xFF212121);
+
   @override
   void initState() {
     super.initState();
@@ -30,17 +37,34 @@ class _ListKategoriState extends State<ListKategori> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content:
-            Text('Apakah Anda yakin ingin menghapus kategori "$namaKategori"?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'Konfirmasi Hapus',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: charcoalBlack,
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus kategori "$namaKategori"?',
+          style: TextStyle(color: charcoalBlack),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
+            style: TextButton.styleFrom(
+              foregroundColor: warmGray,
+            ),
             child: const Text('Batal'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Hapus'),
           ),
         ],
       ),
@@ -51,17 +75,25 @@ class _ListKategoriState extends State<ListKategori> {
         final success = await KategoriService.deleteKategori(id);
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Kategori berhasil dihapus'),
-              backgroundColor: Colors.green,
+            SnackBar(
+              content: const Text('Kategori berhasil dihapus'),
+              backgroundColor: primaryGreen,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              behavior: SnackBarBehavior.floating,
             ),
           );
           _refreshKategori();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Gagal menghapus kategori'),
+            SnackBar(
+              content: const Text('Gagal menghapus kategori'),
               backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              behavior: SnackBarBehavior.floating,
             ),
           );
         }
@@ -70,6 +102,10 @@ class _ListKategoriState extends State<ListKategori> {
           SnackBar(
             content: Text('Error: $e'),
             backgroundColor: Colors.red,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -79,34 +115,37 @@ class _ListKategoriState extends State<ListKategori> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: creamWhite,
       appBar: AppBar(
-        title: const Text('List Kategori'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            onPressed: _refreshKategori,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+          title: const Text(
+            'Daftar Kategori',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          IconButton(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CreateKategoriScreen()),
-              );
-              if (result == true) _refreshKategori();
-            },
-            icon: const Icon(Icons.add),
-            tooltip: 'Tambah Kategori',
-          ),
-        ],
+          centerTitle: true,
+          backgroundColor: primaryGreen,
+          elevation: 2,
+          iconTheme: const IconThemeData(color: Colors.white)),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: primaryGreen,
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CreateKategoriScreen()),
+          );
+          if (result == true) _refreshKategori();
+        },
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: FutureBuilder<Kategori>(
         future: _futureKategori,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: primaryGreen),
+            );
           }
 
           if (snapshot.hasError) {
@@ -116,10 +155,21 @@ class _ListKategoriState extends State<ListKategori> {
                 children: [
                   Icon(Icons.error, size: 64, color: Colors.red),
                   const SizedBox(height: 16),
-                  Text('Error: ${snapshot.error}'),
+                  Text(
+                    'Error: ${snapshot.error}',
+                    style: TextStyle(color: charcoalBlack),
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _refreshKategori,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                     child: const Text('Coba Lagi'),
                   ),
                 ],
@@ -130,71 +180,162 @@ class _ListKategoriState extends State<ListKategori> {
           final kategoriList = snapshot.data?.data ?? [];
 
           if (kategoriList.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.folder_open, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
+                  Icon(
+                    Icons.category_outlined,
+                    size: 64,
+                    color: warmGray,
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Tidak ada kategori',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: charcoalBlack,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'Tap tombol + untuk menambah kategori baru',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: warmGray),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
             );
           }
 
-          return ListView.builder(
-            itemCount: kategoriList.length,
-            itemBuilder: (context, index) {
-              final kategori = kategoriList[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListTile(
-                  title: Text(
-                    kategori.namaKategori ?? 'Tanpa Nama',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(
-                    'ID: ${kategori.id}',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        tooltip: 'Edit',
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  EditKategoriScreen(kategori: kategori),
-                            ),
-                          );
-                          if (result == true) _refreshKategori();
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        tooltip: 'Hapus',
-                        onPressed: () => _deleteKategori(
-                          kategori.id ?? 0,
-                          kategori.namaKategori ?? '',
-                        ),
+          return RefreshIndicator(
+            color: primaryGreen,
+            onRefresh: () async => _refreshKategori(),
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: kategoriList.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                final kategori = kategoriList[index];
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                ),
-              );
-            },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        // Category Icon
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: leafGreen.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.category_rounded,
+                            color: primaryGreen,
+                            size: 24,
+                          ),
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        // Category Info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                kategori.namaKategori ?? 'Tanpa Nama',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17,
+                                  color: charcoalBlack,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.tag,
+                                    size: 14,
+                                    color: warmGray,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'ID: ${kategori.id}',
+                                    style: TextStyle(
+                                      color: warmGray,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Action Buttons
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                color: Colors.blue,
+                                tooltip: 'Edit',
+                                onPressed: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EditKategoriScreen(
+                                          kategori: kategori),
+                                    ),
+                                  );
+                                  if (result == true) _refreshKategori();
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.delete, size: 20),
+                                color: Colors.red,
+                                tooltip: 'Hapus',
+                                onPressed: () => _deleteKategori(
+                                  kategori.id ?? 0,
+                                  kategori.namaKategori ?? '',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           );
         },
       ),

@@ -32,7 +32,6 @@ class _MenuScreenState extends State<MenuScreen> with TickerProviderStateMixin {
     BukuListScreen(),
     ListKategori(),
     ListPeminjamanScreen(),
-    ListPostScreen(),
     ProfileScreen()
   ];
 
@@ -41,7 +40,7 @@ class _MenuScreenState extends State<MenuScreen> with TickerProviderStateMixin {
       'icon': Icons.home_rounded,
       'activeIcon': Icons.home,
       'label': 'Home',
-      'color': primaryColor,
+      'color': secondaryColor,
     },
     {
       'icon': Icons.menu_book_rounded,
@@ -53,25 +52,19 @@ class _MenuScreenState extends State<MenuScreen> with TickerProviderStateMixin {
       'icon': Icons.category_rounded,
       'activeIcon': Icons.category,
       'label': 'Kategori',
-      'color': accentColor,
+      'color': secondaryColor,
     },
     {
       'icon': Icons.bookmark_add_rounded,
       'activeIcon': Icons.bookmark_add,
       'label': 'Pinjam',
-      'color': primaryColor,
-    },
-    {
-      'icon': Icons.article_rounded,
-      'activeIcon': Icons.article,
-      'label': 'Post',
       'color': secondaryColor,
     },
     {
       'icon': Icons.person_rounded,
       'activeIcon': Icons.person,
       'label': 'Profile',
-      'color': textSecondary,
+      'color': secondaryColor,
     },
   ];
 
